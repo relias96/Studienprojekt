@@ -120,7 +120,7 @@ function plot_basin(
         title="statespace matching the basin Plot",
     )
     for m in attractors
-        scatter!(axis, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]])
+        scatter!(axis, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]+1])
     end
     axislegend()
 
