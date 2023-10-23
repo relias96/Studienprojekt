@@ -5,7 +5,7 @@ using OrdinaryDiffEq
 include("colorscheme.jl")
 
 "Definiert das Host-Parasitoid System aus dem Paper"
-function eom(Population, Parameter, Time)
+function Moran_Ricker(Population, Parameter, Time)
     N, P = Population
     r, a, T, T_h = Parameter
     N_next = N * exp(r*(1 - N) - ((a * T * P)/(1 + a * T_h * N)))
@@ -18,7 +18,8 @@ function plot_orbitdiagram(
     system,
     x_range::StepRangeLen;
     params=[] ::Vector{Tuple{Int64, Float64}},  #Tuple Index and Value
-    init_vals= (0.5, 0.5) ::Tuple{Float64, Float64})
+    init_vals= (0.5, 0.5) ::Tuple{Float64, Float64},
+    title = "")
 
     for p in params
         set_parameter!(system, p[1], p[2])
@@ -29,7 +30,7 @@ function plot_orbitdiagram(
     end
 
     fig::Figure = Figure()
-    ax = fig[1, 1] = Axis(fig)
+    ax = fig[1, 1] = Axis(fig, title=title)
     o::Vector{Vector{Float64}} = orbitdiagram(system , 1, 2, x_range, Ttr= 20000, n=300, u0 = init_vals)
 
     for i  in zip(x_range, o::Vector{Vector{Float64}})
@@ -82,11 +83,11 @@ function plot_basin(
 
     theme!(length(xgrid)/50)
     grid = (xgrid, ygrid)
-    mapper = AttractorsViaRecurrences(system, grid, sparse = true, Ttr= 00,consecutive_recurrences = 400)
+    mapper = AttractorsViaRecurrences(system, grid, sparse = true, Ttr= 0,consecutive_recurrences = 400)
     basins, attractors = basins_of_attraction(mapper,grid)
     fracs = basins_fractions(basins)
     #println(fracs)
-###########
+    ###########
     ids = sort!(unique(basins))
     # Modification in case attractor labels are not sequential:
     for i in 2:length(ids)
