@@ -13,6 +13,21 @@ function Moran_Ricker(Population, Parameter, Time)
     return SVector(N_next, P_next)
 end
 
+function Beverton_Holt(Popultation, Parameter, Time)
+    H, P = Popultation
+    λ, a, h, type = Parameter
+    if type == 2
+        f = exp((-a*P)/(1+h*H))
+    end
+    if type == 3
+        f = exp((-a*H*P)/(1+h*H*H))
+    end
+    H_next = λ*H / (1+(λ-1)*H) * f
+    P_next = H*(1 - f)
+    return H_next, P_next
+end
+
+
 "Plottet ein Bifurkationsdiagramm für unser Host-Parasitoid System"
 function plot_orbitdiagram(
     system,
