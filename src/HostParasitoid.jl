@@ -24,7 +24,7 @@ function Beverton_Holt(Popultation, Parameter, Time)
     end
     H_next = λ*H / (1+(λ-1)*H) * f
     P_next = H*(1 - f)
-    return H_next, P_next
+    return SVector(H_next, P_next)
 end
 
 
@@ -46,10 +46,10 @@ function plot_orbitdiagram(
 
     fig::Figure = Figure()
     ax = fig[1, 1] = Axis(fig, title=title)
-    o::Vector{Vector{Float64}} = orbitdiagram(system , 1, 2, x_range, Ttr= 20000, n=300, u0 = init_vals)
+    o::Vector{Vector{Float64}} = orbitdiagram(system , 1, 2, x_range, Ttr= 20000, n=50, u0 = init_vals)
 
     for i  in zip(x_range, o::Vector{Vector{Float64}})
-        scatter!(ax, fill(i[1],size(i[2])), i[2], markersize=1, color="black")
+        scatter!(ax, fill(i[1],size(i[2])), i[2], markersize=1, color="black", dpi=300)
     end 
     return fig
 end
