@@ -44,8 +44,8 @@ function plot_orbitdiagram(
         set_state!(system, init_vals)
     end
 
-    fig::Figure = Figure()
-    ax = fig[1, 1] = Axis(fig, title=title)
+    fig::Figure = Figure(resolution=(2000,600))
+    ax = fig[1, 1] = Axis(fig, title=title, xticks=first(x_range):0.5:last(x_range))
     o::Vector{Vector{Float64}} = orbitdiagram(system , 1, 2, x_range, Ttr= 20000, n=50, u0 = init_vals)
 
     for i  in zip(x_range, o::Vector{Vector{Float64}})
@@ -93,12 +93,13 @@ end
 function plot_basin(
     system;
     xgrid=range(0.001,1;length=1000),
-    ygrid=range(0.001,1;length=1000)
+    ygrid=range(0.001,1;length=1000),
+    t=""
     )
 
     theme!(length(xgrid)/50)
     grid = (xgrid, ygrid)
-    mapper = AttractorsViaRecurrences(system, grid, sparse = true, Ttr= 0,consecutive_recurrences = 400)
+    mapper = AttractorsViaRecurrences(system, grid, sparse = true, Ttr= 0,consecutive_recurrences = 800, attractor_locate_steps = 1000)
     basins, attractors = basins_of_attraction(mapper,grid)
     fracs = basins_fractions(basins)
     #println(fracs)
@@ -113,12 +114,16 @@ function plot_basin(
     end
 
     cmap = generate_cmap(length(ids))
+
  ###############   
 
     bas = Figure(resolution=(length(xgrid),length(ygrid)))
-    ax = Axis(bas[1,1])
+    ax = Axis(bas[1,1],
+        xlabel="Host",
+        ylabel="Parasitoid",
+        title=t)
     hm = heatmap!(ax,xgrid,ygrid,basins, colormap = cmap, colorrange = (ids[1] - 0.5, ids[end]+0.5),)
-    #Colorbar(fig[:, end+1],hm)
+
     cb = Colorbar(bas[1,2], hm)
     l = string.(ids)
     if 0 ∈ ids
@@ -136,7 +141,7 @@ function plot_basin(
         title="statespace matching the basin Plot",
     )
     for m in attractors
-        scatter!(axis, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]+1])
+        scatter!(axis, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]+1], markersize=5)
     end
     axislegend()
 
