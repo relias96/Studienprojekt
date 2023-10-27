@@ -1,7 +1,6 @@
 using DrWatson
 @quickactivate "Studienprojekt"
 
-# Here you may include files from the source directory
 include(srcdir("HostParasitoid.jl"))
 
 #=
@@ -17,7 +16,7 @@ display(a)
 display(b)
 =#
 open(datadir("sims", "BevertonHolt_3Attr.txt"),"a+") do io
-    for i in 1:2
+    for i in 1:10
         parameter = [rand(2:0.01:9), rand(12:0.01:25), 3, 3]
         population = [rand(0.0:0.01:2.0),rand(0.0:0.01:2.0)]
         system = DiscreteDynamicalSystem(Beverton_Holt, population, parameter)
