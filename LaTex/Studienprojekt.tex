@@ -1,0 +1,145 @@
+\documentclass[a4paper,12pt, oneside]{article} % twoside für doppelseitigen ausdruck
+
+\usepackage[utf8]{inputenc} % für Umlate
+\usepackage[ngerman]{babel} % deutsches TOC
+\usepackage[babel]{csquotes} 
+\usepackage[authoryear]{natbib} % Zitate  Autor (Jahr), bzw. (Autor, Jahr)
+
+\usepackage{url} % Für Links im Text
+\usepackage{float} % H als feste Position
+\usepackage[font=footnotesize,labelfont=bf]{caption} % für schöner formatierte Captions
+\usepackage[shortlabels]{enumitem} % \begin{enumerate}[a)] für a) enumerate
+\usepackage{graphicx} % für bessere Grafiken
+\usepackage[onehalfspacing]{setspace} % 1,5 facher Zeilenabstand
+\usepackage{makecell}
+
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{underscore}
+
+%Formatierung von Zitaten
+%Doppelpunkt vor der Seitenzahl
+%Zitate in () Klammern
+%mehrere Zitate mit ; trennen
+%a Autor und Jahr
+%, Trennzeichen zwischen Autor und Jahr
+%,~ Trennzeichen bei mehreren Jahresangaben
+\bibpunct[:~]{(}{)}{;}{a}{,}{,~}
+
+\setlength\parindent{0pt} % kein linker Einzug bei neuen pars
+%\usepackage[left=3cm,right=2.5cm,top=3.0cm,bottom=3.0cm]{geometry} %Ränder %%%% PRINT
+\usepackage[left=2.75cm,right=2.75cm,top=3cm,bottom=3cm]{geometry} %Ränder 
+\usepackage[nottoc]{tocbibind}
+
+%schoenere Kopf- und Fusszeilen, für ein und doppelseitig
+\usepackage{fancyhdr} \pagestyle{fancy}
+\renewcommand\headrulewidth{0.4pt}
+\fancyhead[ER,OL]{} 
+\fancyfoot[C]{\thepage}
+\fancyhead[EL,OR]{\textsl{\leftmark}} % nur die section oben links (nicht subsect)
+
+% eine seite ohne sectionsnamen oben sondern nur mit linie
+\fancypagestyle{justline}{
+\fancyhead[R]{}
+\renewcommand\headrulewidth{0.4pt}
+\fancyfoot[C]{\thepage}
+\fancyhead[OL,ER]{}
+\fancyhead[EL,OR]{} }
+
+\usepackage{footnpag} %fussnoten werden auf jeder Seite einzeln gezaehlt
+
+\addto{\captionsngerman}{%
+  %\renewcommand*{\contentsname}{Inhalt}
+  \renewcommand*{\listfigurename}{Abbildungsverzeichnis}
+  \renewcommand*{\listtablename}{Tabellenverzeichnis}
+  \renewcommand*{\figurename}{Abb.}
+  \renewcommand*{\tablename}{Tab.}
+}
+\usepackage{hyperref} % Links im PDF
+\usepackage{lineno} %Zeilennummern von \linenumbers bis \nolinenumbers
+
+\usepackage{anyfontsize}
+\usepackage[textsize=scriptsize]{todonotes} % todos
+\setlength{\marginparwidth}{2cm} % wie weit die todos nach rechts dürfen
+\title{Verfassen von Hausarbeiten mit LaTeX}
+\author{}
+
+\usepackage{wrapfig}
+
+%-----------Head Ende------------------------------------
+\begin{document}
+\renewcommand{\arraystretch}{1.2} % entwas entzerrtere Tabellen
+\begin{titlepage}
+
+\begin{center}
+  \bfseries
+  \LARGE Universität Osnabrück
+  \vskip.6in
+  \Large Studienprojekt %Worum handelt es sich? Hausarbeit/ Essay/ Aufgabenblatt
+  \vskip0.15in 
+  \small Betreut durch
+  %\vskip.15in
+  \Large %Studienprojekt  %Welches Modul?
+  \vskip.3in
+  \small  Prof. Dr. Frank Hilker
+  \vskip.3in
+  \small Wintersemester 2023 %Welches Semester
+  \vskip.5in
+  \vfill
+  \rule{\textwidth}{0.25mm}
+  \vskip0.25cm
+  \LARGE Host-Parasitoid Interactions
+  \vskip0.cm
+  \rule{\textwidth}{0.25mm}
+  \vskip1in
+  
+  \vfill
+ \small verfasst von 
+ \vskip.5in
+\end{center}
+
+
+\begin{minipage}{1\textwidth}
+\begin{center}
+\bfseries\large 
+Robin  \\ Elias \\
+\vskip.1in
+968504\\ % Matrikelnummer
+\vskip.1in
+\small \textit{Umweltsystemwissenschaft Monobachelor} \\
+
+\end{center}
+\end{minipage}
+\hfill
+
+
+\vfill
+\begin{center}
+    Abgegeben am \today
+\end{center}
+\end{titlepage}
+
+\thispagestyle{justline}
+\setcounter{page}{1} % Seite eins ist hier
+\setcounter{tocdepth}{2} % tocdepth 2 enthält bis zu subsection, 3 bis zu subsubsections
+\tableofcontents
+\listoffigures
+\newpage
+
+%%%%%%%%%%%%%%%%%
+%Ab hier beginnt das Dokument
+%%%%%%%%%%%%%%%%%
+
+
+
+
+
+\newpage
+\thispagestyle{justline}
+{\small
+\bibliographystyle{apalike-german}
+%\bibliography{xyz} %hier den Namen der .bib Datei 
+}
+
+
+\end{document}
