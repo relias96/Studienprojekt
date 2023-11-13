@@ -1,4 +1,4 @@
-\documentclass[a4paper,12pt, oneside]{article} % twoside für doppelseitigen ausdruck
+\documentclass[a4paper,12pt, twoside]{article} % twoside für doppelseitigen ausdruck
 
 \usepackage[utf8]{inputenc} % für Umlate
 \usepackage[ngerman]{babel} % deutsches TOC
@@ -10,12 +10,16 @@
 \usepackage[font=footnotesize,labelfont=bf]{caption} % für schöner formatierte Captions
 \usepackage[shortlabels]{enumitem} % \begin{enumerate}[a)] für a) enumerate
 \usepackage{graphicx} % für bessere Grafiken
-\usepackage[onehalfspacing]{setspace} % 1,5 facher Zeilenabstand
+\usepackage[singlespacing]{setspace} % 1,5 facher Zeilenabstand
 \usepackage{makecell}
 
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{underscore}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage{romannum}
+\usepackage{parskip}
 
 %Formatierung von Zitaten
 %Doppelpunkt vor der Seitenzahl
@@ -130,7 +134,133 @@ Robin  \\ Elias \\
 %Ab hier beginnt das Dokument
 %%%%%%%%%%%%%%%%%
 
+\section*{A}
 
+The project was implemented in \href{https://docs.julialang.org/en/v1/}{Julia} and uses the DrWatson package.
+To reproduce the results look at README.md on \href{https://github.com/relias96/Studienprojekt}{github.com}
+
+\section{Introduction}
+
+The development of models to describe host-parasitoid interactions began as early as the beginning of the 20th century.
+Motivated by the possibility of regulating pests in agriculture by the controlled application of 
+parasitoids, various approaches were developed. Today, as then, research faces a number of challenges. 
+Although the data has grown over the years and numerous models have been developed, there is still a 
+lack of mechanistic understanding of the interactions and complex dynamics that can occur in such a system.
+ 
+Since the models can exhibit highly non-linear behavior, analytical mathematic quickly reaches its limits. 
+Thanks to the rapid development of computer technology computers are now available to researchers. 
+In recent years, therefore numerical algorithms have been developed to investigate complex system behavior.
+
+
+\section{Model and Methods}
+
+\subsection{The Model}
+The modeling of host-parasitoid interactions has a long history. Since insects often have separate generations, 
+discrete-time models are suitable. In general all our models base on the following assumptions:
+
+\begin{equation}
+\begin{split}
+  N_{t+1} &= g(N_t)  f(N_t,P_t) \\
+  P_{t+1} &= c N_t[1- f(N_t, P_t)] \\
+\end{split}
+\end{equation}
+
+Given this equations $g(N_t)$ describes the growth of the hosts, $f(N_t, P_t)$ the proportion of hosts
+that is not infested by parasites and $c$ indicates the average number of parasites that emerge from 
+a parasitized host.
+
+Previos research often build on the assumption that the growth of host following the Ricker map given
+by:
+\begin{equation}
+  g(N_t)= N_t e^{r(1-N_t)}
+\end{equation}
+
+About this Ricker Model is known that in respect to the intrinsic growth rate $r$ the behavior changes 
+from stable, over period doubling to chaos.  However we want to reduce this impact, therefore we use 
+the Beverton-Holt map as a also well known model. This model is also a discrete-time equivalent to 
+logistic growth, which shows stable behavior and approaches the carring capacity in every permitted parameter set. 
+
+The Beverton-Holt Model ist given by the following equation
+\begin{equation}
+  \begin{split}
+    g(N_t) = \frac{\lambda N_t}{1 + \frac{(\lambda -1)N_t}{K}}
+  \end{split}
+\end{equation}
+
+with $\lambda > 0$ as the intrinsic growth rate and $K > 0$ as the capacity.\\
+
+Assuming that the interaction between host and parasitoid is density-dependent with a Holling type
+\Romannum{3} results:
+
+\begin{equation}
+  \begin{split}
+    f(N_t, P_t) = 1 - e^{- \frac{N_{enc}}{N_t}} =1- e^{\left[- \frac{aTN_t P_t}{1+cN+aT_h N_t^2} \right]} \\
+  \end{split}
+\end{equation}
+
+with the total time per generation $T$, the handling time $T_h$ and the parasitization rate $a$.\\
+
+Through dedimensionalization with
+\begin{equation}
+  n_t = \frac{N_t}{K} \hspace*{10mm} p_t=\frac{P_t}{bK} \hspace*{10mm} \alpha = abTK^2 \hspace*{10mm} \mu = aT_h K^2
+\end{equation}
+one receives:
+\begin{equation}
+  \begin{split}
+    n_{t+1} &= \frac{\lambda n_t}{1+(\lambda -1) n_t} e^{\frac{-\alpha n_t p_t}{1-\mu n_t^2}}\\
+    p_{t+1} &= n_t \left( 1-e^{\frac{-\alpha n_t p_t}{1+\mu n_t^2}}\right)
+  \end{split}
+\end{equation}
+with the scaled growth rate $\lambda > 0$, the scaled parasitization rate $\alpha > 0$ and 
+the scaled handling time $\mu > 0$
+
+\subsection{Analysemethoden}
+The model shows the following complex behavior:
+\begin{itemize}
+  \item Non-unique dynamics, which mean coexisting attractors
+  \item Basin of attraction
+  \item Intermittency
+  \item Supertransient behavior
+\end{itemize}
+
+
+
+\subsubsection{Implementations}
+
+Because of the complex behavior the existance and stability of an Attractor is hardly 
+analytical shown. Therefore we investigate this behavior by using a few numerical methods. 
+We choose the Julia programming Language because many required functionalities are already implemented, 
+with easy readable code and great performance.\par
+
+For numerically evolving the given System we use the \texttt{trajectory} function from the \texttt{DynamicalSystems} 
+libary in the Julia programming language.\par
+
+For Attractor detection we use the \texttt{AttractorsViaRecurrences} function from the \texttt{Attractors} 
+libary by  Datseries and Wagemakers which relies on a method described by Nusse and Yorke.\par
+
+Given this set of Attractors one can match the inital conditions with one of the Attractors to recieve the 
+basin of attraction. This  is also implemented in the \texttt{Attractors} libary with the function 
+\texttt{basins_of_attraction}.
+
+\subsubsection{Example}
+To get the basin of attraction we use a finate state machine. The state space is devided into a discrete 
+grid initialized with a value \texttt{u} which means \textit{unvisited}\par
+
+For each inital condition we track the trajectory of the System. Once an Attractor hits a cell the value 
+changes to \texttt{v} for \textit{visited}. When the trajectory hits consecutive times previos visited cells 
+an Attractor is detected and the inital condition is attached to the Attractor.\par
+
+For a more detailed description see `Effortless estimation of basin of attraction' by Datseries.
+
+\section{Ergebnisse}
+
+
+\section{Diskursion}
+
+The given System is a fully deterministic Model. Therefore fractal properties do not directly influence 
+the stability of an Attractor. But under respect of random fluctuations, mixed up basins with close proximaty 
+of different Attractors may disturb the System. A metric on the basin based on the neighborhood could quantify this
+insecurity. 
 
 
 
