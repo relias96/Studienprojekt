@@ -11,9 +11,11 @@ include(srcdir("HostParasitoid.jl"))
 
 
 # For Lambda = 7,5
+[18.5, 19.0, 19.5, 20, 21.3, 21.9, 22.5, 24, 26, 26.8, 27, 27.7, 28.5]
 
-for a in [18.5, 19.0, 19.5, 20, 21.3, 21.9, 22.5, 24, 26, 26.8, 27, 27.7, 28.5]
-    parameter = [7.5, a, 3, 3]
+#[ 21, 21.5, 22 ,22.5, 23.5, 25, 26, 27]
+for a in [20]
+    parameter = [2, a, 2, 3]
     population = [rand(0.0:0.01:2.0),rand(0.0:0.01:2.0)]
     system = DiscreteDynamicalSystem(Beverton_Holt, population, parameter)
 
@@ -24,9 +26,9 @@ for a in [18.5, 19.0, 19.5, 20, 21.3, 21.9, 22.5, 24, 26, 26.8, 27, 27.7, 28.5]
     fig = Figure(resolution=(2*length(xgrid),length(ygrid)))
     ax, axis, basin = plot_basin!(fig, system, xgrid, ygrid , string(parameter))
 
-    # plot_statespace!(ax, system, init_vals=(0.75,0.45))
+     plot_statespace!(ax, system, init_vals=(0.75,0.45))
 
     display(fig)
 
-    save(plotsdir("BevertonHolt","basins_lambda=7,5" , "basin"*string(a)*".png"), fig)
+    save(plotsdir("BevertonHolt","basins_lambda=20" , "basin_a="*string(a)*".png"), fig)
 end
