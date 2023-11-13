@@ -14,17 +14,17 @@ function Moran_Ricker(Population, Parameter, Time)
 end
 
 function Beverton_Holt(Popultation, Parameter, Time)
-    H, P = Popultation
-    λ, a, h, type = Parameter
+    n, p = Popultation
+    λ, α, μ, type = Parameter
     if type == 2
-        f = exp((-a*P)/(1+h*H))
+        f = exp((-α*p)/(1+μ*n))
     end
     if type == 3
-        f = exp((-a*H*P)/(1+h*H*H))
+        f = exp((-α*n*p)/(1+μ*n*n))
     end
-    H_next = λ*H / (1+(λ-1)*H) * f
-    P_next = H*(1 - f)
-    return SVector(H_next, P_next)
+    n_next = λ*n / (1+(λ-1)*n) * f
+    p_next = n*(1 - f)
+    return SVector(n_next, p_next)
 end
 
 
@@ -83,6 +83,8 @@ end
 function generate_cmap(n)
     if n > length(COLORS)
         return :viridis
+    elseif n ==1
+        return cgrad(COLORS[1:n], n+1; categorical = true)
     else
         return cgrad(COLORS[1:n], n; categorical = true)
     end
@@ -111,7 +113,6 @@ function plot_basin!(
             replace!(ids, ids[i] => ids[i-1]+1)
         end
     end
-
     cmap = generate_cmap(length(ids))
 
  ###############   
