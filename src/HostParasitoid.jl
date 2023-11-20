@@ -1,6 +1,7 @@
 using DynamicalSystems
 using CairoMakie
 using OrdinaryDiffEq
+using Serialization
 
 include("colorscheme.jl")
 
@@ -90,21 +91,48 @@ function generate_cmap(n)
     end
 end
 
-function plot_basin!(
-    fig :: Figure,
+function get_basin(
     system,
     xgrid=range(0.001,1;length=1000),
-    ygrid=range(0.001,1;length=1000),
-    t=""
+    ygrid=range(0.001,1;length=1000);
+    
+    Ttr=0,
+    consecutive_recurrences = 1400,
+    attractor_locate_steps = 10000
     )
 
-    theme!(length(xgrid)/50)
-    grid = (xgrid, ygrid)
-    mapper = AttractorsViaRecurrences(system, grid, sparse = true, Ttr= 0,consecutive_recurrences = 1000, attractor_locate_steps = 10000)
-    basin, attractors = basins_of_attraction(mapper,grid)
-    fracs = basins_fractions(basin)
-    #println(fracs)
-    ###########
+    p = system.p
+
+    bname = joinpath(datadir("exp_raw"),replace(savename("basin",@dict λ=p[1] α=p[2] μ=p[3]),"."=>",")*".jls")
+    aname = joinpath(datadir("exp_raw"),replace(savename("attractor",@dict λ=p[1] α=p[2] μ=p[3]),"."=>",")*".jls")
+
+    try 
+        println("in Try block")
+        basin = open(deserialize, bname)
+        attractors = open(deserialize, aname)
+        return basin, attractors
+    catch
+        println("In Catch Block")
+        grid = (xgrid, ygrid)
+        mapper = AttractorsViaRecurrences(system, grid, sparse = true, Ttr= Ttr,consecutive_recurrences = consecutive_recurrences , attractor_locate_steps = attractor_locate_steps)
+        basin, attractors = basins_of_attraction(mapper,grid)
+
+        open(f -> serialize(f,basin), bname, "w")
+        open(f -> serialize(f,attractors), aname, "w");
+        return basin, attractors
+    end
+end
+
+function plot_basin!(
+    system,
+    fig :: Figure,
+    data;
+    xgrid=range(0.001,1;length=1000),
+    ygrid=range(0.001,1;length=1000)
+    )
+
+    basin, attractors = data
+###########
     ids = sort!(unique(basin))
     # Modification in case attractor labels are not sequential:
     for i in 2:length(ids)
@@ -116,13 +144,26 @@ function plot_basin!(
     cmap = generate_cmap(length(ids))
 
  ###############   
-
-    #bas = Figure(resolution=(length(xgrid),length(ygrid)))
-    ax = Axis(fig[1,1],
+    ax1 = Axis(fig[1,1],
+        aspect = 1,
         xlabel="Host",
         ylabel="Parasitoid",
-        title=t)
-    hm = heatmap!(ax,xgrid,ygrid,basin, colormap = cmap, colorrange = (ids[1] - 0.5, ids[end]+0.5),)
+        title = string(system.p))
+    hm = heatmap!(ax1,xgrid,ygrid,basin, colormap = cmap, colorrange = (ids[1] - 0.5, ids[end]+0.5,))
+
+
+
+    ax2 = Axis(fig[1, 2],
+        aspect = 1,
+        limits = (first(xgrid), last(xgrid), first(ygrid), last(ygrid) ),
+        xlabel="Host",
+        ylabel="Parasitoid",
+        title="statespace matching the basin Plot",
+    )
+    for m in attractors
+        scatter!(ax2, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]+1], markersize=8)
+    end
+    axislegend()
 
     cb = Colorbar(fig[1,3], hm)
     l = string.(ids)
@@ -130,39 +171,10 @@ function plot_basin!(
         l[1] = "-1"
     end 
     cb.ticks = (ids, l)
-
     set_theme!()
-    ####
 
-    #statespace = Figure()
-    axis = Axis(fig[1, 2],
-        limits = (first(xgrid), last(xgrid), first(ygrid), last(ygrid)),
-        xlabel="Host",
-        ylabel="Parasitoid",
-        title="statespace matching the basin Plot",
-    )
-    for m in attractors
-        scatter!(axis, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]+1], markersize=8)
-    end
-    axislegend()
-
-    return ax, axis, basin
-    #return fig, statespace, attractors
-end
-
-function plot_statespace_Ntimes(
-    system=system,
-    time_end=200;
-    n=100
-    )
-    fig = Figure() 
-    ax = Axis(fig[1, 1], xlabel = "Host", ylabel = "Parasitoid", title = "Statespace")
-    for i in 1:1:n
-        data, time = trajectory(system, time_end, (rand(),rand()), Ttr=20000)
-        scatter!(ax, data[:,1], data[:, 2], label=string(i))
-    end
-    axislegend()
-    return fig
+    linkyaxes!(ax1, ax2)
+    return ax1, ax2
 end
 
 function theme!(n = 26::Int32)
