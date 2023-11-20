@@ -13,10 +13,10 @@ plot_timeseries(system, time_end=200)
 
 n = 0:0.001:1
 
-#function N(n, p, λ, α, μ)
- #   f = exp((-α*n*p)/(1+μ*n*n))
-    return λ*n / (1+(λ-1)*n) * f
-#end
+function N(n, p, λ, α, μ)
+  f = exp((-α*n*p)/(1+μ*n*n))
+  return λ*n / (1+(λ-1)*n) * f
+end
 
 
 

@@ -1,12 +1,10 @@
 using DrWatson
 @quickactivate "Studienprojekt"
 
-
-
-
-
 # Here you may include files from the source directory
 include(srcdir("HostParasitoid.jl"))
+
+
 # λ, a, h, type
 parameter = [1, 0.2, 0.1, 3]
 population = [rand(0.0:0.01:2.0),rand(0.0:0.01:2.0)]
