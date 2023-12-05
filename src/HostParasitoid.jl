@@ -2,6 +2,7 @@ using DynamicalSystems
 using CairoMakie
 using OrdinaryDiffEq
 using Serialization
+using BenchmarkTools
 
 include("colorscheme.jl")
 
@@ -16,13 +17,8 @@ end
 
 function Beverton_Holt(Popultation, Parameter, Time)
     n, p = Popultation
-    λ, α, μ, type = Parameter
-    if type == 2
-        f = exp((-α*p)/(1+μ*n))
-    end
-    if type == 3
-        f = exp((-α*n*p)/(1+μ*n*n))
-    end
+    λ, α, μ = Parameter
+    f = exp((-α*n*p)/(1+μ*n*n))
     n_next = λ*n / (1+(λ-1)*n) * f
     p_next = n*(1 - f)
     return SVector(n_next, p_next)
@@ -30,42 +26,47 @@ end
 
 
 "Plottet ein Bifurkationsdiagramm für unser Host-Parasitoid System"
-function plot_orbitdiagram!(
-    ax,
-    system,
-    x_range::StepRangeLen;
-    params=[] ::Vector{Tuple{Int64, Float64}},  #Tuple Index and Value
-    init_vals= (0.5, 0.5) ::Tuple{Float64, Float64})
+function plot_orbitdiagram!(ax::Axis, variation_parameter_index::Int64, axis_range::StepRangeLen; 
+    parameter=[] ::Vector{Tuple{Int64, Float64}}, n = 5, m = 10)
 
-    for p in params
-        set_parameter!(system, p[1], p[2])
+    stepsize = (last(axis_range)-first(axis_range))/800
+    variation_parameter_range = first(axis_range):stepsize:last(axis_range)
+
+
+    o = [Vector{Float64}(undef, 250) for _ = 1:length(variation_parameter_range)]
+    population = Vector{Float64}(undef,2)
+
+    function get_unique(x::Vector{Vector{Float64}})
+        map(x -> unique!(round.(x,digits = 4)),x)
     end
 
-    if init_vals != []
-        set_state!(system, init_vals)
+    for counter in 0:1:m
+        population = [rand(0.01:0.000001:1),rand(0.01:0.00001:1.0)]
+        system = DiscreteDynamicalSystem(Beverton_Holt, population, parameter)
+
+        o::Vector{Vector{Float64}} = get_unique(orbitdiagram(system , 1, variation_parameter_index, variation_parameter_range, Ttr= 600, n=250, u0=population; show_progress = true))
+        
+        for (j,p)  in enumerate(variation_parameter_range)
+            l = length(o[j])
+            if l < 150
+                scatter!(ax, p .* ones(l),o[j], markersize=3, color=:black, dpi=300)
+            elseif counter < n 
+                scatter!(ax, p .* ones(l),o[j] , markersize=5, color=(:black,0.015), dpi=300)
+            end
+        end 
+        println("progress " * string(counter+1)*"/"*string(m+1))
     end
-
-    o::Vector{Vector{Float64}} = orbitdiagram(system , 1, 2, x_range, Ttr= 10000, n=500, u0=init_vals)
-
-    for i  in zip(x_range, o::Vector{Vector{Float64}})
-        scatter!(ax, fill(i[1],size(i[2])), i[2], markersize=1, color="black", dpi=300)
-    end 
 end
 
 "Plottet eine Zeitreihe"
-function plot_timeseries(
-    system;
-    time_end=100
-    )
+function plot_timeseries!(ax, system; time_end=100)
+   println(system.u)
     "Erstellen einer Zeitreihe"
     data, time = trajectory(system, time_end)
 
-    fig = Figure()
-    ax = Axis(fig[1, 1], xlabel = "Time", ylabel = "Value", title = "Timeseries")
-    lines!(ax, time, data[:, 2], label="parasitoid")
-    lines!(ax, time, data[:,1], label="host")
-    axislegend(ax)
-    return fig
+    scatter!(ax, time, data[:, 2], label="parasitoid", markersize=2, color=COLORS[2],dpi=600)
+    scatter!(ax, time, data[:,1], label="host", markersize=2, color = COLORS[3],dpi=600)
+    #axislegend(ax)
 end
 
 "Plottet den Statespace"
@@ -75,20 +76,7 @@ function plot_statespace!(
     time_end=100;
     init_vals=(0.5,0.5))
     data, time = trajectory(system, time_end,init_vals, Ttr=0)
-    #fig = Figure()
-    #ax = Axis(fig[1, 1], xlabel = "Host", ylabel = "Parasitoid", title = "Statespace")
     scatter!(ax, data[:,1], data[:, 2], color="black")
-    #return fig
-end
-
-function generate_cmap(n)
-    if n > length(COLORS)
-        return :viridis
-    elseif n ==1
-        return cgrad(COLORS[1:n], n+1; categorical = true)
-    else
-        return cgrad(COLORS[1:n], n; categorical = true)
-    end
 end
 
 function get_basin(
@@ -96,23 +84,20 @@ function get_basin(
     xgrid=range(0.001,1;length=1000),
     ygrid=range(0.001,1;length=1000);
     
-    Ttr=0,
+    Ttr=4000,
     consecutive_recurrences = 1400,
     attractor_locate_steps = 10000
     )
 
     p = system.p
-
-    bname = joinpath(datadir("exp_raw"),replace(savename("basin",@dict λ=p[1] α=p[2] μ=p[3]),"."=>",")*".jls")
-    aname = joinpath(datadir("exp_raw"),replace(savename("attractor",@dict λ=p[1] α=p[2] μ=p[3]),"."=>",")*".jls")
+    bname = joinpath(datadir("exp_raw"),replace("basin"*"λ="*string(p[1])*"α="*string(p[2])*"μ="*string(p[3]),"."=>",")*".jls")
+    aname = joinpath(datadir("exp_raw"),replace("attractor"*"λ="*string(p[1])*"α="*string(p[2])*"μ="*string(p[3]),"."=>",")*".jls")
 
     try 
-        println("in Try block")
         basin = open(deserialize, bname)
         attractors = open(deserialize, aname)
         return basin, attractors
     catch
-        println("In Catch Block")
         grid = (xgrid, ygrid)
         mapper = AttractorsViaRecurrences(system, grid, sparse = true, Ttr= Ttr,consecutive_recurrences = consecutive_recurrences , attractor_locate_steps = attractor_locate_steps)
         basin, attractors = basins_of_attraction(mapper,grid)
@@ -123,16 +108,13 @@ function get_basin(
     end
 end
 
-function plot_basin!(
-    system,
-    fig :: Figure,
-    data;
+function plot_basin!(system, fig :: Figure, data;
     xgrid=range(0.001,1;length=1000),
     ygrid=range(0.001,1;length=1000)
     )
 
     basin, attractors = data
-###########
+    ###########
     ids = sort!(unique(basin))
     # Modification in case attractor labels are not sequential:
     for i in 2:length(ids)
@@ -143,12 +125,12 @@ function plot_basin!(
     end
     cmap = generate_cmap(length(ids))
 
- ###############   
+    ###############   
     ax1 = Axis(fig[1,1],
         aspect = 1,
         xlabel="Host",
         ylabel="Parasitoid",
-        title = string(system.p))
+        title = string("λ = "* string(system.p[1]) *"  ---  α = "*string(system.p[2])*"  ---  μ = "* string(system.p[3])))
     hm = heatmap!(ax1,xgrid,ygrid,basin, colormap = cmap, colorrange = (ids[1] - 0.5, ids[end]+0.5,))
 
 
@@ -161,7 +143,11 @@ function plot_basin!(
         title="statespace matching the basin Plot",
     )
     for m in attractors
-        scatter!(ax2, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]+1], markersize=8)
+        if length(m[2][:,1]) < 500
+            scatter!(ax2, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]], markersize=8)
+        else
+            scatter!(ax2, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]], markersize=2)
+        end
     end
     axislegend()
 
@@ -175,6 +161,16 @@ function plot_basin!(
 
     linkyaxes!(ax1, ax2)
     return ax1, ax2
+end
+
+function generate_cmap(n)
+    if n > length(COLORS)
+        return :viridis
+    elseif n ==1
+        return cgrad(COLORS[1:n], n+1; categorical = true)
+    else
+        return cgrad(COLORS[1:n], n; categorical = true)
+    end
 end
 
 function theme!(n = 26::Int32)
