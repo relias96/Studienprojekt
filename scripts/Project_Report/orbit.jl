@@ -9,14 +9,14 @@ include(srcdir("HostParasitoid.jl"))
 
 parameter = [λ, α, μ]
 
-axis_range = 19.5:0.5:23
+axis_range = 14:1:23.0
 
 set_theme!(Theme(fontsize = 50))
 
-fig::Figure = Figure(resolution=(2000,2000))
+fig::Figure = Figure(resolution=(3000,2000))
 ax = fig[1, 1] = Axis(fig, title="Orbitdiagram", xlabel="α",ylabel="Host", xticks=axis_range, 
     xminorticks = IntervalsBetween(10),xminorticksvisible = true, xminorgridvisible = true,
-    yminorticks = IntervalsBetween(10),yminorticksvisible = true, yminorgridvisible = true  )
+    yminorticks = IntervalsBetween(10),yminorticksvisible = true, yminorgridvisible = true)
 
-plot_orbitdiagram!(ax,2, axis_range; parameter=parameter, plotChaos= true, n=7, m=7)
+plot_orbitdiagram!(ax, 2, axis_range; parameter=parameter, n=8, m=40)
 display(fig)

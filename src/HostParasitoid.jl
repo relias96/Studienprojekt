@@ -2,7 +2,6 @@ using DynamicalSystems
 using CairoMakie
 using OrdinaryDiffEq
 using Serialization
-using BenchmarkTools
 
 include("colorscheme.jl")
 
