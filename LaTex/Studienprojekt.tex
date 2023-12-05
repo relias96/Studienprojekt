@@ -1,9 +1,30 @@
+%!LW recipe=pdflatex
+
 \documentclass[a4paper,12pt, twoside]{article} % twoside für doppelseitigen ausdruck
 
 \usepackage[utf8]{inputenc} % für Umlate
-\usepackage[ngerman]{babel} % deutsches TOC
-\usepackage[babel]{csquotes} 
-\usepackage[authoryear]{natbib} % Zitate  Autor (Jahr), bzw. (Autor, Jahr)
+\usepackage[english]{babel} % deutsches TOC
+
+\usepackage[autostyle]{csquotes}
+
+\usepackage[
+    backend=biber,
+    style=authoryear-icomp,
+    sortlocale=de_DE,
+    natbib=true,
+    url=false, 
+    doi=true,
+    eprint=false
+]{biblatex}
+\addbibresource{Studienprojekt.bib}
+
+\usepackage[]{hyperref}
+\hypersetup{
+    colorlinks=false,
+}
+
+%\usepackage[babel]{csquotes} 
+%\usepackage[authoryear]{natbib} % Zitate  Autor (Jahr), bzw. (Autor, Jahr)
 
 \usepackage{url} % Für Links im Text
 \usepackage{float} % H als feste Position
@@ -21,6 +42,13 @@
 \usepackage{romannum}
 \usepackage{parskip}
 
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+
 %Formatierung von Zitaten
 %Doppelpunkt vor der Seitenzahl
 %Zitate in () Klammern
@@ -28,7 +56,7 @@
 %a Autor und Jahr
 %, Trennzeichen zwischen Autor und Jahr
 %,~ Trennzeichen bei mehreren Jahresangaben
-\bibpunct[:~]{(}{)}{;}{a}{,}{,~}
+%\bibpunct[:~]{(}{)}{;}{a}{,}{,~}
 
 \setlength\parindent{0pt} % kein linker Einzug bei neuen pars
 %\usepackage[left=3cm,right=2.5cm,top=3.0cm,bottom=3.0cm]{geometry} %Ränder %%%% PRINT
@@ -39,6 +67,7 @@
 \usepackage{fancyhdr} \pagestyle{fancy}
 \renewcommand\headrulewidth{0.4pt}
 \fancyhead[ER,OL]{} 
+\setlength{\headheight}{14.49998pt}
 \fancyfoot[C]{\thepage}
 \fancyhead[EL,OR]{\textsl{\leftmark}} % nur die section oben links (nicht subsect)
 
@@ -59,14 +88,12 @@
   \renewcommand*{\figurename}{Abb.}
   \renewcommand*{\tablename}{Tab.}
 }
-\usepackage{hyperref} % Links im PDF
-\usepackage{lineno} %Zeilennummern von \linenumbers bis \nolinenumbers
+%\usepackage{hyperref} % Links im PDF
+%\usepackage{lineno} %Zeilennummern von \linenumbers bis \nolinenumbers
 
 \usepackage{anyfontsize}
 \usepackage[textsize=scriptsize]{todonotes} % todos
 \setlength{\marginparwidth}{2cm} % wie weit die todos nach rechts dürfen
-\title{Verfassen von Hausarbeiten mit LaTeX}
-\author{}
 
 \usepackage{wrapfig}
 
@@ -85,7 +112,7 @@
   %\vskip.15in
   \Large %Studienprojekt  %Welches Modul?
   \vskip.3in
-  \small  Prof. Dr. Frank Hilker
+  \small  Prof.\ Dr.\ Frank Hilker
   \vskip.3in
   \small Wintersemester 2023 %Welches Semester
   \vskip.5in
@@ -110,7 +137,7 @@ Robin  \\ Elias \\
 \vskip.1in
 968504\\ % Matrikelnummer
 \vskip.1in
-\small \textit{Umweltsystemwissenschaft Monobachelor} \\
+\small \textit{B.Sc.} \\
 
 \end{center}
 \end{minipage}
@@ -134,22 +161,23 @@ Robin  \\ Elias \\
 %Ab hier beginnt das Dokument
 %%%%%%%%%%%%%%%%%
 
-\section*{A}
 
-The project was implemented in \href{https://docs.julialang.org/en/v1/}{Julia} and uses the DrWatson package.
-To reproduce the results look at README.md on \href{https://github.com/relias96/Studienprojekt}{github.com}
 
 \section{Introduction}
-
-The development of models to describe host-parasitoid interactions began as early as the beginning of the 20th century.
-Motivated by the possibility of regulating pests in agriculture by the controlled application of 
-parasitoids, various approaches were developed. Today, as then, research faces a number of challenges. 
-Although the data has grown over the years and numerous models have been developed, there is still a 
-lack of mechanistic understanding of the interactions and complex dynamics that can occur in such a system.
+The Earth's biodiversity is made up of around 1.7 million recorded species. Of these, about 57\% are insects, 25\% plants, 
+fungi and microorganisms and 20\% vertebrates and other animals. Therefore there are nearly 1 million different insect species. \autocite[S. 35ff]{biodiversity}
+About 10\% of all described insect species are parasitoids \autocite{eggleton1997}, 
+which corresponds to about 100 thousand species. This leads to the conclusion that parasitism is a realy common thing to expect in a natural
+environment. For this reason Thompson developed the first host-parasitoid models in the beginning of the 20th century, motivated by the possibility 
+of regulating agricultural pests through the controlled use of parasitoids. These models were very simple and their predictions rather divorced
+from the often complex behavior found in the field. Therefore numerous other models have been developed. But as today as then, research faces a number 
+of challenges. Although the data has grown over the years there is still a lack of mechanistic understanding of the interactions 
+and complex dynamics that can occur in such a real life system or corresponding model. 
  
-Since the models can exhibit highly non-linear behavior, analytical mathematic quickly reaches its limits. 
-Thanks to the rapid development of computer technology computers are now available to researchers. 
-In recent years, therefore numerical algorithms have been developed to investigate complex system behavior.
+When such highly non-linear behavior accurs, analytical mathematic's quickly reaches it's limits. 
+However, thanks to the rapid development of computer technology and numerical algorithms for investigating such complex system behavior, it is now 
+possible to gain insights into such models. This report is intended to show how efficient and convincing these algorithms have become 
+and what results can be expected and achieved. For this purpose, we use cutting-edge algorithms developed in the Julia programming language.
 
 
 \section{Model and Methods}
@@ -187,18 +215,18 @@ The Beverton-Holt Model ist given by the following equation
   \end{split}
 \end{equation}
 
-with $\lambda > 0$ as the intrinsic growth rate and $K > 0$ as the capacity.\\
+with $\lambda > 0$ as the intrinsic growth rate and $K > 0$ as the capacity.
 
 Assuming that the interaction between host and parasitoid is density-dependent with a Holling type
 \Romannum{3} results:
 
 \begin{equation}
   \begin{split}
-    f(N_t, P_t) = 1 - e^{- \frac{N_{enc}}{N_t}} =1- e^{\left[- \frac{aTN_t P_t}{1+cN+aT_h N_t^2} \right]} \\
+    f(N_t, P_t) = 1 - e^{- \frac{N_{enc}}{N_t}} =1- e^{\left[- \frac{aTN_t P_t}{1+cN+aT_h N_t^2} \right]} 
   \end{split}
 \end{equation}
 
-with the total time per generation $T$, the handling time $T_h$ and the parasitization rate $a$.\\
+with the total time per generation $T$, the handling time $T_h$ and the parasitization rate $a$.
 
 Through dedimensionalization with
 \begin{equation}
@@ -214,46 +242,146 @@ one receives:
 with the scaled growth rate $\lambda > 0$, the scaled parasitization rate $\alpha > 0$ and 
 the scaled handling time $\mu > 0$
 
-\subsection{Analysemethoden}
-The model shows the following complex behavior:
-\begin{itemize}
-  \item Non-unique dynamics, which mean coexisting attractors
-  \item Basin of attraction
-  \item Intermittency
-  \item Supertransient behavior
-\end{itemize}
 
 
-
-\subsubsection{Implementations}
+\subsection{The Algorithms}
+The project was implemented in \href{https://docs.julialang.org/en/v1/}{Julia}\footnote[1]{https://docs.julialang.org/en/v1/} and uses the DrWatson package.
+To reproduce the results look at README.md on \href{https://github.com/relias96/Studienprojekt}{github.com}\footnote[2]{https://github.com/relias96/Studienprojekt}
 
 Because of the complex behavior the existance and stability of an Attractor is hardly 
 analytical shown. Therefore we investigate this behavior by using a few numerical methods. 
 We choose the Julia programming Language because many required functionalities are already implemented, 
 with easy readable code and great performance.\par
 
-For numerically evolving the given System we use the \texttt{trajectory} function from the \texttt{DynamicalSystems} 
-libary in the Julia programming language.\par
+\subsubsection{Orbit-diagramm}
+An orbit-diagramm is often mistakenly called bifurcation-diagramm. One thing in common is that a parameter is varied over a range, but while an orbit-diagramm only 
+shows attracting equilibria/cycles or possible locations of chaos, a bifurcation diagram in contrast plots all attracting and repelling periodic points \autocite{bifurcation}.
 
-For Attractor detection we use the \texttt{AttractorsViaRecurrences} function from the \texttt{Attractors} 
-libary by  Datseries and Wagemakers which relies on a method described by Nusse and Yorke.\par
+While the computation of the bifurcation diagram can be very complex and time-consuming, the computation of an orbit diagram is relatively simple. Since an orbit diagramm 
+is sufficient, we will use it in the following. Because there are co-existing attractors, we implement a algorithm in the following manner:
 
-Given this set of Attractors one can match the inital conditions with one of the Attractors to recieve the 
-basin of attraction. This  is also implemented in the \texttt{Attractors} libary with the function 
-\texttt{basins_of_attraction}.
+\begin{algorithm}[H]
+  \caption{Orbitdiagram}\label{orbit}
+  \begin{algorithmic}[1]
+  \Function{timeseries}{system, n, m}
+    \State evolve \textit{system} \textit{m} times
+    \State $\textit{ts} \gets \text{evolve system } \textit{n} \text{ times}$
+    \State \Return \textit{ts}
+  \EndFunction
+  \Function{init}{system, i}
+    \State $\textit{system.initialState} \gets \textit{i}$
+  \EndFunction
+  \Procedure{MyProcedure}{system, p\_values, period\_limit}
+    \State $\textit{m} \gets \text{transient time}$
+    \State $\textit{n} \gets \text{tracked steps}$
+    \ForAll{$\textit{p} \in \text{p\_values}$}
+      \Repeat
+        \State \Call{init}{system, random}
+        \State $attractor \gets Set(\Call{timeseries}{system, n, m})$
+        \If{$length(attractor) < period\_limit$}
+          \State $\text{\Call{Plot}{p,attractor} as dots}$
+        \Else 
+          \State $\text{\Call{Plot}{p,attractor} as blurred dots}$
+        \EndIf
+      \Until{$n > 10$}
+    \EndFor
+  \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
 
-\subsubsection{Example}
-To get the basin of attraction we use a finate state machine. The state space is devided into a discrete 
-grid initialized with a value \texttt{u} which means \textit{unvisited}\par
+\subsubsection{Basin of attraction}
 
-For each inital condition we track the trajectory of the System. Once an Attractor hits a cell the value 
-changes to \texttt{v} for \textit{visited}. When the trajectory hits consecutive times previos visited cells 
-an Attractor is detected and the inital condition is attached to the Attractor.\par
 
-For a more detailed description see `Effortless estimation of basin of attraction' by Datseries.
 
-\section{Ergebnisse}
+\begin{figure}[H]
+  \begin{centering}
+    \includegraphics[width =\textwidth]{../plots/basinOfAttraction.png} 
+    \caption{Basin of Attraction}\label{fig:basinAlgo}
+  \end{centering}
+\end{figure}
 
+Figure \ref{fig:basinAlgo} shows the algorithm behind the function \texttt{basins_of_attraction} which relies on a method described in Chapter 7 of \autocite{nusse2012dynamics}.
+To get the basin of attraction we use a finate state machine. The state space is devided into a discrete grid initialized with a value \texttt{unvisited}.
+For each inital condition we track the trajectory of the System by using the mapper \texttt{AttractorsViaRecurrences} which numerically evolvs the given System using the \texttt{trajectory} function 
+from the \texttt{DynamicalSystems} libary and tracks its path in the Statespace. Once an Attractor hits a cell the value 
+changes to  \texttt{visited} (upper left of Fig:\ref*{fig:basinAlgo}). When the trajectory hits consecutive times previos \texttt{visited} cells an Attractor is detected (upper right of Fig:\ref*{fig:basinAlgo}).
+In the following Step the new found Attraktor is tracked over \texttt{n} time itteration (lower left of Fig:\ref{fig:basinAlgo}). In the last Step the inital condition is mapped to the Attractor.
+Following this algorithm each inital conditions can be matched with one of the Attractors to recieve the basin of attraction.
+
+For a more detailed description see `Effortless estimation of basin of attraction' by Datseries \autocite{datseris}.
+
+\section{Results}
+
+By the fact, that we use De-dimensionalized Equations and that we do not have a real life scenario to fit this for, our goal is to gain a qualitative understanding of the Model.
+Kaitala, Ylikarjula and Heino have shown that their Host-Parasitoid Model, under the assumption of Host groth following a Ricker map, behaves in some strage ways. Due to the behavior
+of the Ricker map, which shows Choas at some parameter values, we choose the Beverton-Holt map with its stable Behavior over all parameters to eliminate this destabilizing impacts on
+the overall behavior. Never the less our Model is highly nonlinear and has some interisting features.
+
+\subsection{Overview}
+The model shows the following complex behavior:
+\begin{itemize}
+  \item Supertransient behavior
+  \item Intermittency
+  \item Non-unique dynamics, which mean coexisting attractors
+  \item Basin of attraction
+\end{itemize}
+
+
+\subsection{Transient behavior}
+At first we discovered long transient phases before the Model reaches its final state. This means that it takes a unexpected long time of inconclusive behavior before the behavior settles
+to a state. In Figure \ref{fig:transient} the Model ($\lambda=2.5$; $\alpha = 17.23 $; $ \mu = 0.1$) reaches it's Equilibrium after 8000 generations. 
+
+\begin{figure}[H]
+\begin{centering}
+\includegraphics[width =\textwidth]{../plots/Project_Report/Supertransient.png}
+\caption{Supertransient behavior}\label{fig:transient}
+\end{centering}
+\end{figure}
+
+\subsection{Intermittency}
+
+For some parameter combination intermittency occurs in our Model. 
+This means that a equlibrium is no longer stable, but instead randomly switches between states. 
+In figure \ref{fig:intermittency} the timeseries for the parameters $\lambda=6.5$; $\alpha = 21.411 $; $ \mu = 0.1$ is plotted.
+It is rare to find in this model, but it is possible. 
+\begin{figure}[H]
+\begin{centering}
+\includegraphics[width =\textwidth]{../plots/Project_Report/Intermittency.png}
+\caption{intermittency}\label{fig:intermittency}
+\end{centering}
+\end{figure}
+
+
+\subsection{Non-unique Dynamics}
+
+To explore the dynamics we make use of the orbitdiagram to track all attractors given for a parameter combination and plots them in the given way (see Figure: \ref{fig:Orbitdiagram}).
+
+
+\begin{figure}[H]
+  \begin{centering}
+    \includegraphics[width =\textwidth]{../plots/Project_Report/Orbit7.png} 
+    \caption{Orbitdiagram}
+    \label{fig:Orbitdiagram}
+  \end{centering}
+\end{figure}
+%$\lambda=6.5$; $\alpha = 21.411 $; $ \mu = 0.1$
+
+
+
+\begin{figure}[H]
+  \begin{centering}
+    \includegraphics[width =\textwidth]{../plots/Project_Report/Basin1.png}
+    \caption{Basin of attraction: Coexisting attractors}
+  \end{centering}
+\end{figure}
+
+
+\begin{figure}[H]
+  \begin{centering}
+    \includegraphics[width =\textwidth]{../plots/Project_Report/Basin_piece_Chaos.png}
+    \caption{Basin of attraction: Piece Chaos}
+  \end{centering}
+\end{figure}
 
 \section{Diskursion}
 
@@ -262,14 +390,13 @@ the stability of an Attractor. But under respect of random fluctuations, mixed u
 of different Attractors may disturb the System. A metric on the basin based on the neighborhood could quantify this
 insecurity. 
 
-
+sad\autocite{paper}
+asdaf\autocite{biodiversity}
+asgs\autocite{hassell}
 
 \newpage
 \thispagestyle{justline}
-{\small
-\bibliographystyle{apalike-german}
-%\bibliography{xyz} %hier den Namen der .bib Datei 
-}
+\printbibliography[]
 
 
 \end{document}
