@@ -21,7 +21,7 @@ ygrid=range(0.0001,1,1000)
 
 fig = Figure(resolution=(2*length(xgrid),1*length(ygrid)))
 data = get_basin(system)
-ax, axis = plot_basin!(system, fig, data, xgrid=xgrid, ygrid=xgrid)
+ax, axis = plot_basin!(fig, data, xgrid=xgrid, ygrid=xgrid)
 
 display(fig)
 #save(plotsdir("BevertonHolt","basins_lambda=20" , "basin_a="*string(a)*".png"), fig)
