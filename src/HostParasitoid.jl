@@ -26,12 +26,18 @@ end
 
 
 "Plottet ein Bifurkationsdiagramm für unser Host-Parasitoid System"
-function plot_orbitdiagram!(ax::Axis, variation_parameter_index::Int64, axis_range::StepRangeLen; 
-    parameter=[] ::Vector{Tuple{Int64, Float64}}, n = 5, m = 10)
+function plot_orbitdiagram!(
+    ax::Axis, 
+    variation_parameter_index::Int64, 
+    axis_range::StepRangeLen; 
+    parameter=[] ::Vector{Tuple{Int64, Float64}},
+    n = 5,
+    m = 10)
 
     stepsize = (last(axis_range)-first(axis_range))/800
     variation_parameter_range = first(axis_range):stepsize:last(axis_range)
 
+    # prealocation space 
     o = [Vector{Float64}(undef, 250) for _ = 1:length(variation_parameter_range)]
     population = Vector{Float64}(undef,2)
 
@@ -78,11 +84,12 @@ function plot_statespace!(
     scatter!(ax, data[:,1], data[:, 2], color="black")
 end
 
+"Loads or Produces the Basin of Attraction with its corresponding Attraktors"
 function get_basin(
     system,
-    xgrid=range(0.001,1;length=1000),
+    xgrid=range(0.001,1;length=1000), 
     ygrid=range(0.001,1;length=1000);
-    
+    # finite-state maschine config
     Ttr=4000,
     consecutive_recurrences = 1400,
     attractor_locate_steps = 10000
@@ -107,16 +114,18 @@ function get_basin(
     end
 end
 
-function plot_basin!(system, fig :: Figure, data;
+"This Funktion plots the Basin of Attraktion"
+function plot_basin!(
+    fig :: Figure, 
+    data;
     xgrid=range(0.001,1;length=1000),
     ygrid=range(0.001,1;length=1000)
     )
-
     theme!()
     basin, attractors = data
-    ###########
-    ids = sort!(unique(basin))
+
     # Modification in case attractor labels are not sequential:
+    ids = sort!(unique(basin))
     for i in 2:length(ids)
         if ids[i] - ids[i-1] ≠ 1
             replace!(basin, ids[i] => ids[i-1]+1)
@@ -125,7 +134,7 @@ function plot_basin!(system, fig :: Figure, data;
     end
     cmap = generate_cmap(length(ids))
 
-    ###############   
+    # Plot the Basin as Heatmap 
     ax1 = Axis(fig[1,1],
         aspect = 1,
         xlabel="Host",
@@ -135,8 +144,7 @@ function plot_basin!(system, fig :: Figure, data;
         )
     hm = heatmap!(ax1,xgrid,ygrid,basin, colormap = cmap, colorrange = (ids[1] - 0.5, ids[end]+0.5,))
 
-
-
+    # Plot the Attractors
     ax2 = Axis(fig[1, 2],
         aspect = 1,
         limits = (first(xgrid), last(xgrid), first(ygrid), last(ygrid) ),
@@ -144,25 +152,27 @@ function plot_basin!(system, fig :: Figure, data;
         title="Statespace matching the Basin",
     )
     for m in attractors
+
         if length(m[2][:,1]) < 500
             scatter!(ax2, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]], markersize=16)
         else
+            # If attractor is Chaotic
             scatter!(ax2, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]], markersize=2)
         end
     end
-    #axislegend()
 
+    # Plot the Colorbar on the right
     cb = Colorbar(fig[1,3], hm)
     l = string.(ids)
     if 0 ∈ ids
         l[1] = "-1"
     end 
     cb.ticks = (ids, l)
-
     linkyaxes!(ax1, ax2)
     return ax1, ax2
 end
 
+"Creates a Colormap"
 function generate_cmap(n)
     if n > length(COLORS)
         return :viridis
@@ -173,6 +183,7 @@ function generate_cmap(n)
     end
 end
 
+"Creates a Theme and sets it"
 function theme!()
     myTheme = Theme(
     fontsize=40,
@@ -186,5 +197,4 @@ function theme!()
     Colorbar=(ticksize=16, spinewidth=0.8),
     )
     set_theme!(myTheme)
-    
 end
