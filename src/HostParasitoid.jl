@@ -14,6 +14,7 @@ function Moran_Ricker(Population, Parameter, Time)
     return SVector(N_next, P_next)
 end
 
+"Definiert das Host-Parasitoid System aus dem meinem Projektbericht"
 function Beverton_Holt(Popultation, Parameter, Time)
     n, p = Popultation
     λ, α, μ = Parameter
@@ -31,7 +32,6 @@ function plot_orbitdiagram!(ax::Axis, variation_parameter_index::Int64, axis_ran
     stepsize = (last(axis_range)-first(axis_range))/800
     variation_parameter_range = first(axis_range):stepsize:last(axis_range)
 
-
     o = [Vector{Float64}(undef, 250) for _ = 1:length(variation_parameter_range)]
     population = Vector{Float64}(undef,2)
 
@@ -43,11 +43,11 @@ function plot_orbitdiagram!(ax::Axis, variation_parameter_index::Int64, axis_ran
         population = [rand(0.01:0.000001:1),rand(0.01:0.00001:1.0)]
         system = DiscreteDynamicalSystem(Beverton_Holt, population, parameter)
 
-        o::Vector{Vector{Float64}} = get_unique(orbitdiagram(system , 1, variation_parameter_index, variation_parameter_range, Ttr= 600, n=250, u0=population; show_progress = true))
+        o::Vector{Vector{Float64}} = get_unique(orbitdiagram(system , 1, variation_parameter_index, variation_parameter_range, Ttr= 800, n=250, u0=population; show_progress = true))
         
         for (j,p)  in enumerate(variation_parameter_range)
             l = length(o[j])
-            if l < 150
+            if l < 100
                 scatter!(ax, p .* ones(l),o[j], markersize=3, color=:black, dpi=300)
             elseif counter < n 
                 scatter!(ax, p .* ones(l),o[j] , markersize=5, color=(:black,0.015), dpi=300)
@@ -63,8 +63,8 @@ function plot_timeseries!(ax, system; time_end=100)
     "Erstellen einer Zeitreihe"
     data, time = trajectory(system, time_end)
 
-    scatter!(ax, time, data[:, 2], label="parasitoid", markersize=2, color=COLORS[2],dpi=600)
-    scatter!(ax, time, data[:,1], label="host", markersize=2, color = COLORS[3],dpi=600)
+    scatter!(ax, time, data[:, 2], label="parasitoid", markersize=4, color=COLORS[2],dpi=300)
+    scatter!(ax, time, data[:,1], label="host", markersize=4, color = COLORS[3],dpi=300)
     #axislegend(ax)
 end
 
@@ -98,7 +98,7 @@ function get_basin(
         return basin, attractors
     catch
         grid = (xgrid, ygrid)
-        mapper = AttractorsViaRecurrences(system, grid, sparse = true, Ttr= Ttr,consecutive_recurrences = consecutive_recurrences , attractor_locate_steps = attractor_locate_steps)
+        mapper = AttractorsViaRecurrences(system, grid, sparse = true, Ttr= Ttr,consecutive_recurrences = consecutive_recurrences , attractor_locate_steps = attractor_locate_steps, consecutive_attractor_steps=8)
         basin, attractors = basins_of_attraction(mapper,grid)
 
         open(f -> serialize(f,basin), bname, "w")
@@ -112,6 +112,7 @@ function plot_basin!(system, fig :: Figure, data;
     ygrid=range(0.001,1;length=1000)
     )
 
+    theme!()
     basin, attractors = data
     ###########
     ids = sort!(unique(basin))
@@ -129,7 +130,9 @@ function plot_basin!(system, fig :: Figure, data;
         aspect = 1,
         xlabel="Host",
         ylabel="Parasitoid",
-        title = string("λ = "* string(system.p[1]) *"  ---  α = "*string(system.p[2])*"  ---  μ = "* string(system.p[3])))
+        #title = string("λ = "* string(system.p[1]) *"  ---  α = "*string(system.p[2])*"  ---  μ = "* string(system.p[3]))
+        title="Basin"
+        )
     hm = heatmap!(ax1,xgrid,ygrid,basin, colormap = cmap, colorrange = (ids[1] - 0.5, ids[end]+0.5,))
 
 
@@ -138,17 +141,16 @@ function plot_basin!(system, fig :: Figure, data;
         aspect = 1,
         limits = (first(xgrid), last(xgrid), first(ygrid), last(ygrid) ),
         xlabel="Host",
-        ylabel="Parasitoid",
-        title="statespace matching the basin Plot",
+        title="Statespace matching the Basin",
     )
     for m in attractors
         if length(m[2][:,1]) < 500
-            scatter!(ax2, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]], markersize=8)
+            scatter!(ax2, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]], markersize=16)
         else
             scatter!(ax2, m[2][:,1], m[2][:,2], label="Attractor " * string(m[1]),color=COLORS[m[1]], markersize=2)
         end
     end
-    axislegend()
+    #axislegend()
 
     cb = Colorbar(fig[1,3], hm)
     l = string.(ids)
@@ -156,7 +158,6 @@ function plot_basin!(system, fig :: Figure, data;
         l[1] = "-1"
     end 
     cb.ticks = (ids, l)
-    set_theme!()
 
     linkyaxes!(ax1, ax2)
     return ax1, ax2
@@ -172,9 +173,18 @@ function generate_cmap(n)
     end
 end
 
-function theme!(n = 26::Int32)
-    set_theme!(;
-        palette = (color = COLORS,), 
-        fontsize = n,
+function theme!()
+    myTheme = Theme(
+    fontsize=40,
+    Axis=(
+        xlabelsize=35,xlabelpadding=-5, ylabelsize=35,
+        xgridstyle=:dash, ygridstyle=:dash,
+        xtickalign=1, ytickalign=1,
+        yticksize=15, xticksize=15,
+        yticklabelsize=25, xticklabelsize=25,
+        ),
+    Colorbar=(ticksize=16, spinewidth=0.8),
     )
+    set_theme!(myTheme)
+    
 end

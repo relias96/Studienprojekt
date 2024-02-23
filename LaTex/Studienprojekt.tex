@@ -1,4 +1,4 @@
-%!LW recipe=pdflatex
+
 
 \documentclass[a4paper,12pt, twoside]{article} % twoside für doppelseitigen ausdruck
 
@@ -41,9 +41,11 @@
 \usepackage{array}
 \usepackage{romannum}
 \usepackage{parskip}
+\usepackage{pdflscape}
 
 \usepackage{algorithm}
-\usepackage[noend]{algpseudocode}
+\usepackage{algpseudocode}
+
 
 \makeatletter
 \def\BState{\State\hskip-\ALG@thistlm}
@@ -137,7 +139,7 @@ Robin  \\ Elias \\
 \vskip.1in
 968504\\ % Matrikelnummer
 \vskip.1in
-\small \textit{B.Sc.} \\
+\small \textit{Bachelor of Science} \\
 
 \end{center}
 \end{minipage}
@@ -174,7 +176,7 @@ from the often complex behavior found in the field. Therefore numerous other mod
 of challenges. Although the data has grown over the years there is still a lack of mechanistic understanding of the interactions 
 and complex dynamics that can occur in such a real life system or corresponding model. 
  
-When such highly non-linear behavior accurs, analytical mathematic's quickly reaches it's limits. 
+When such highly non-linear behavior occurs, analytical mathematic's quickly reaches it's limits. 
 However, thanks to the rapid development of computer technology and numerical algorithms for investigating such complex system behavior, it is now 
 possible to gain insights into such models. This report is intended to show how efficient and convincing these algorithms have become 
 and what results can be expected and achieved. For this purpose, we use cutting-edge algorithms developed in the Julia programming language.
@@ -189,23 +191,23 @@ discrete-time models are suitable. In general all our models base on the followi
 \begin{equation}
 \begin{split}
   N_{t+1} &= g(N_t)  f(N_t,P_t) \\
-  P_{t+1} &= c N_t[1- f(N_t, P_t)] \\
+  P_{t+1} &= b N_t[1- f(N_t, P_t)] \\
 \end{split}
 \end{equation}
 
-Given this equations $g(N_t)$ describes the growth of the hosts, $f(N_t, P_t)$ the proportion of hosts
-that is not infested by parasites and $c$ indicates the average number of parasites that emerge from 
-a parasitized host.
+Given this equations $g(N_t)$ describes the growth of the hosts. Because parasitoid act lethal on the host population, only not infested one are fertile and can reproduce. Therefore $f(N_t, P_t)$ is the proportion of hosts
+that is not infested by parasites. The parameter $b$ indicates the average number of parasites that emerge from 
+one parasitized host.
 
-Previos research often build on the assumption that the growth of host following the Ricker map given
+Previos research by \autocite[][]{Kaitala} build on the assumption that the growth of host following the Ricker map given
 by:
 \begin{equation}
   g(N_t)= N_t e^{r(1-N_t)}
 \end{equation}
 
-About this Ricker Model is known that in respect to the intrinsic growth rate $r$ the behavior changes 
+About this Ricker map is known that in respect to the intrinsic growth rate $r$ the behavior changes 
 from stable, over period doubling to chaos.  However we want to reduce this impact, therefore we use 
-the Beverton-Holt map as a also well known model. This model is also a discrete-time equivalent to 
+the Beverton-Holt map. This map is also a discrete-time equivalent to 
 logistic growth, which shows stable behavior and approaches the carring capacity in every permitted parameter set. 
 
 The Beverton-Holt Model ist given by the following equation
@@ -215,18 +217,23 @@ The Beverton-Holt Model ist given by the following equation
   \end{split}
 \end{equation}
 
-with $\lambda > 0$ as the intrinsic growth rate and $K > 0$ as the capacity.
+with the intrinsic growth rate $\lambda > 0$  and the capacity $K > 0$.
 
-Assuming that the interaction between host and parasitoid is density-dependent with a Holling type
-\Romannum{3} results:
+We assume that the interaction between host and parasitoid is density-dependent with a holling type
+\Romannum{3} and that the host and the parasitoid encounter randomly $N_{enc}$ times. 
+Since it is possible that one host can be encountert multiple times by different parasitoids.
+ The number each single host is encountered is poisson distributed and
+ therefore the zero-term represents the proportion of not infected host.
+ 
+ This results in:
 
 \begin{equation}
   \begin{split}
-    f(N_t, P_t) = 1 - e^{- \frac{N_{enc}}{N_t}} =1- e^{\left[- \frac{aTN_t P_t}{1+cN+aT_h N_t^2} \right]} 
+    f(N_t, P_t) = e^{- \frac{N_{enc}}{N_t}} =e^{\left[- \frac{aTN_t P_t}{1+cN_t+aT_h N_t^2} \right]} 
   \end{split}
 \end{equation}
 
-with the total time per generation $T$, the handling time $T_h$ and the parasitization rate $a$.
+with the per capita encounters $\frac{N_{enc}}{N_t}$,  the total time per generation $T$, the handling time $T_h$ and the parasitization rate $a$. \autocite[see. chapter 2.4.1]{hassell}
 
 Through dedimensionalization with
 \begin{equation}
@@ -235,11 +242,11 @@ Through dedimensionalization with
 one receives:
 \begin{equation}
   \begin{split}
-    n_{t+1} &= \frac{\lambda n_t}{1+(\lambda -1) n_t} e^{\frac{-\alpha n_t p_t}{1-\mu n_t^2}}\\
+    n_{t+1} &= \frac{\lambda n_t}{1+(\lambda -1) n_t} e^{\frac{-\alpha n_t p_t}{1+\mu n_t^2}}\\
     p_{t+1} &= n_t \left( 1-e^{\frac{-\alpha n_t p_t}{1+\mu n_t^2}}\right)
   \end{split}
 \end{equation}
-with the scaled growth rate $\lambda > 0$, the scaled parasitization rate $\alpha > 0$ and 
+with the growth rate $\lambda > 0$, the scaled parasitization rate $\alpha > 0$ and 
 the scaled handling time $\mu > 0$
 
 
@@ -258,73 +265,130 @@ An orbit-diagramm is often mistakenly called bifurcation-diagramm. One thing in 
 shows attracting equilibria/cycles or possible locations of chaos, a bifurcation diagram in contrast plots all attracting and repelling periodic points \autocite{bifurcation}.
 
 While the computation of the bifurcation diagram can be very complex and time-consuming, the computation of an orbit diagram is relatively simple. Since an orbit diagramm 
-is sufficient, we will use it in the following. Because there are co-existing attractors, we implement a algorithm in the following manner:
+is sufficient for our research, we will use it in the following. Because there are co-existing attractors, we implement a algorithm in the following manner:
+
+
+For each parameter value on the x-axis, we randomly vary the initial conditions several times to depict even unlikely attractors. Then we evolve the system \texttt{m} times and record the following \texttt{n} states. If the attractor is chaotic,
+which means that the number of attractor-states with unique values is greater than the limit up to which we want to capture periodic behavior, we plot blurred dots. This ensures that 
+the periodic and stable points are in contrast with the chaotic ones. 
 
 \begin{algorithm}[H]
   \caption{Orbitdiagram}\label{orbit}
   \begin{algorithmic}[1]
   \Function{timeseries}{system, n, m}
-    \State evolve \textit{system} \textit{m} times
+    \State evolve system m times
     \State $\textit{ts} \gets \text{evolve system } \textit{n} \text{ times}$
     \State \Return \textit{ts}
   \EndFunction
-  \Function{init}{system, i}
-    \State $\textit{system.initialState} \gets \textit{i}$
-  \EndFunction
-  \Procedure{MyProcedure}{system, p\_values, period\_limit}
-    \State $\textit{m} \gets \text{transient time}$
-    \State $\textit{n} \gets \text{tracked steps}$
-    \ForAll{$\textit{p} \in \text{p\_values}$}
+  \Procedure{PlotOrbit}{}
+    \State $\texttt{system} \gets \texttt{Dict}\text{(equationOfMotion; parameter; initialState)}$
+    \State $\texttt{m} \gets \text{transient time}$
+    \State $\texttt{n} \gets \text{tracked steps}$
+    \State $\texttt{p\_values} \gets \texttt{range}(parameter)$
+    \State $\texttt{limit} \gets \text{maximal period}$
+    \ForAll{$\textit{p} \in \text{parameter\_values}$}
       \Repeat
-        \State \Call{init}{system, random}
+        \State $\textit{system.initialState} \gets \textit{u_0}$
         \State $attractor \gets Set(\Call{timeseries}{system, n, m})$
-        \If{$length(attractor) < period\_limit$}
+        \If{$length(attractor) < limit$}
           \State $\text{\Call{Plot}{p,attractor} as dots}$
         \Else 
           \State $\text{\Call{Plot}{p,attractor} as blurred dots}$
         \EndIf
-      \Until{$n > 10$}
+      \Until{Plot is detailed enough}
     \EndFor
   \EndProcedure
   \end{algorithmic}
 \end{algorithm}
 
+
+
+
 \subsubsection{Basin of attraction}
 
-
+If there are at least two coexisting attractors that depend on the initial condition, the basin of attraction proves to be a valuable tool. 
+It uses a numerical approach to partition the statespace of initial conditions into different regions. 
+Each of these regions represents a set of initial conditions that lead to its corresponding attractor.
 
 \begin{figure}[H]
   \begin{centering}
-    \includegraphics[width =\textwidth]{../plots/basinOfAttraction.png} 
+    \includegraphics[width =.9\textwidth]{../plots/basinOfAttraction.png} 
     \caption{Basin of Attraction}\label{fig:basinAlgo}
   \end{centering}
 \end{figure}
 
 Figure \ref{fig:basinAlgo} shows the algorithm behind the function \texttt{basins_of_attraction} which relies on a method described in Chapter 7 of \autocite{nusse2012dynamics}.
-To get the basin of attraction we use a finate state machine. The state space is devided into a discrete grid initialized with a value \texttt{unvisited}.
-For each inital condition we track the trajectory of the System by using the mapper \texttt{AttractorsViaRecurrences} which numerically evolvs the given System using the \texttt{trajectory} function 
-from the \texttt{DynamicalSystems} libary and tracks its path in the Statespace. Once an Attractor hits a cell the value 
-changes to  \texttt{visited} (upper left of Fig:\ref*{fig:basinAlgo}). When the trajectory hits consecutive times previos \texttt{visited} cells an Attractor is detected (upper right of Fig:\ref*{fig:basinAlgo}).
-In the following Step the new found Attraktor is tracked over \texttt{n} time itteration (lower left of Fig:\ref{fig:basinAlgo}). In the last Step the inital condition is mapped to the Attractor.
-Following this algorithm each inital conditions can be matched with one of the Attractors to recieve the basin of attraction.
+To get the basin of attraction we use a finite state machine. The state space is devided into a discrete grid initialized with a value \textit{unvisited}.
+For each inital condition we track the trajectory of the System by using the mapper \texttt{AttractorsViaRecurrences} which numerically evolves the given System using the \texttt{trajectory} function 
+from the \texttt{DynamicalSystems} libary and tracks its path in the Statespace. Once the trajectory hits a \textit{unvisited} cell the value changes to  \textit{visited} (upper left of Figure \ref{fig:basinAlgo}).
 
-For a more detailed description see `Effortless estimation of basin of attraction' by Datseries \autocite{datseris}.
-
-\section{Results}
-
-By the fact, that we use De-dimensionalized Equations and that we do not have a real life scenario to fit this for, our goal is to gain a qualitative understanding of the Model.
-Kaitala, Ylikarjula and Heino have shown that their Host-Parasitoid Model, under the assumption of Host groth following a Ricker map, behaves in some strage ways. Due to the behavior
-of the Ricker map, which shows Choas at some parameter values, we choose the Beverton-Holt map with its stable Behavior over all parameters to eliminate this destabilizing impacts on
-the overall behavior. Never the less our Model is highly nonlinear and has some interisting features.
-
-\subsection{Overview}
-The model shows the following complex behavior:
-\begin{itemize}
-  \item Supertransient behavior
-  \item Intermittency
-  \item Non-unique dynamics, which mean coexisting attractors
-  \item Basin of attraction
+The Algorithm terminates when one counter hits its following corresponding threshold:
+\begin{itemize}[itemsep=-4pt]
+  \item \texttt{consecutive_recurrences} times an \textit{visited} cells get hit
+  \item \texttt{consecutive_basin_steps} times basin cells with same \textit{ID} gets hit
+  \item \texttt{consecutive_attractor_steps} times attractor cells with same \textit{ID} get hit
 \end{itemize}
+
+When the \texttt{consecutive_recurrences} threshold is reached the new attractor is found and the cell in the grid coresponding to the initial condition gets an new \textit{ID} which identifies the the basin to the attractor.
+Otherwise when \texttt{consecutive_basin_steps} or \texttt{consecutive_attractor_steps} threshold is reached the existing \textit{ID} gets assigned to the cell, adding it to an existing basin. 
+
+Following this algorithm each inital conditions can be matched with one of the Attractors to receive the basin of attraction.
+
+
+
+\begin{algorithm}[H]
+  \caption{Algorithm to compute the basin of attraction}\label{BoA}
+  \begin{algorithmic}
+  \Procedure{basinOfAttraction}{}
+    \State $\texttt{system} \gets \texttt{Dict}\text{(equationOfMotion; parameter; initialState)}$
+    \State $\texttt{grid} \gets \text{grid of empty cells} $
+    \State $\texttt{attractors} \gets \text{[ ]}$
+    \ForAll{$\text{cell} \in \texttt{grid}$}
+      \State $\texttt{coordinate, ID} \gets \text{cell}$
+      \State $\texttt{system}\text{.initialState} \gets \texttt{coordinate}$
+      \State $\texttt{ID} \gets \Call{AttractorsViaRecurrences}{\texttt{system, grid, attractors}}$
+    \EndFor
+  \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \caption{Algorithm mapping an initial State to an Attractor}\label{AvR}
+  \begin{algorithmic}
+  \Function{AttractorsViaRecurrences}{system, grid, attractors}
+    \State $\texttt{tresholds}$
+    \State $\texttt{counters}$
+    \While{$\forall \texttt{ counters} < \texttt{tresholds} $}
+      \State $\texttt{next_cell} \gets \Call{evolve}{system, \Delta t } $
+      \State $\Call{adjustCounters}{\texttt{counters, next_cell}}$
+      \If {$\texttt{next_cell} == empty$}
+      \State $\texttt{next_cell} = visited$
+      \EndIf
+    \EndWhile
+    \If {\texttt{consecutive_recurrences} \text{ treshold is reached}}
+    \State $\text{new_attractor} \gets  \Call{GetAttractor}{system, grid}$
+    \State $\text{attractors}.\Call{add}{\text{new_attractor}}$
+    \State \Return $\text{newID}$
+    \EndIf
+    \If {$\texttt{consecutive_basin_steps} \text{ treshold is reached}$}
+      \State $\text{ID} \gets \text{BasinID}$
+      \State \Return $\text{ID}$
+    \EndIf
+    \If {$\texttt{consecutive_attractor_steps} \text{ treshold is reached}$}
+      \State $\text{ID} \gets \text{AttractorID}$
+      \State \Return $\text{ID}$
+    \EndIf
+  \EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+For a more detailed description see `Effortless estimation of basin of attraction' by Datseries \autocite{datseris} or have a look into the \href{https://juliadynamics.github.io/Attractors.jl/dev/attractors/} {documentation}\footnote[1]{https://juliadynamics.github.io/Attractors.jl/dev/attractors/} .
+\section{Results}
+Since we are using dedimensionalised equations and do not have a real-life scenario to fit them into, our aim is to gain a qualitative understanding of the model.
+Previous research demonstrated the peculiar behaviour of their Host-Parasitoid Model when assuming host growth following a Ricker map \autocite{Kaitala}.
+To mitigate the destabilizing impacts caused by the chaotic behaviour of the Ricker map at certain parameter values, the Beverton-Holt map was selected for its stable behaviour across all parameters.
+
+
 
 
 \subsection{Transient behavior}
@@ -333,68 +397,97 @@ to a state. In Figure \ref{fig:transient} the Model ($\lambda=2.5$; $\alpha = 17
 
 \begin{figure}[H]
 \begin{centering}
-\includegraphics[width =\textwidth]{../plots/Project_Report/Supertransient.png}
-\caption{Supertransient behavior}\label{fig:transient}
+\includegraphics[width =\textwidth]{../plots/Project_Report/transient.png}
+\caption{Transient behavior}\label{fig:transient}
 \end{centering}
 \end{figure}
 
 \subsection{Intermittency}
 
 For some parameter combination intermittency occurs in our Model. 
-This means that a equlibrium is no longer stable, but instead randomly switches between states. 
+This means that a equlibrium is no longer stable, but instead switches randomly between states. 
 In figure \ref{fig:intermittency} the timeseries for the parameters $\lambda=6.5$; $\alpha = 21.411 $; $ \mu = 0.1$ is plotted.
 It is rare to find in this model, but it is possible. 
 \begin{figure}[H]
 \begin{centering}
 \includegraphics[width =\textwidth]{../plots/Project_Report/Intermittency.png}
-\caption{intermittency}\label{fig:intermittency}
+\caption{Intermittency}\label{fig:intermittency}
 \end{centering}
 \end{figure}
 
+\subsection{Non-unique dynamics and basin of attraction}
 
-\subsection{Non-unique Dynamics}
+Our Model can include several coexisting attractors. This means that for the same parameters the system can end up in different attractors. To explore the presence of the attractors we 
+make use of the orbitdiagram defined in Algorithm \ref{orbit}, to track all attractors for a given parameter combination. 
 
-To explore the dynamics we make use of the orbitdiagram to track all attractors given for a parameter combination and plots them in the given way (see Figure: \ref{fig:Orbitdiagram}).
-
+For the Parameters $\lambda = 7$ and $\mu = 2.5$ the following plots are produced.
 
 \begin{figure}[H]
   \begin{centering}
-    \includegraphics[width =\textwidth]{../plots/Project_Report/Orbit7.png} 
+    \includegraphics[width =.9\textwidth]{../plots/Project_Report/Orbit14-23.png} 
     \caption{Orbitdiagram}
     \label{fig:Orbitdiagram}
   \end{centering}
 \end{figure}
-%$\lambda=6.5$; $\alpha = 21.411 $; $ \mu = 0.1$
-
-
 
 \begin{figure}[H]
   \begin{centering}
-    \includegraphics[width =\textwidth]{../plots/Project_Report/Basin1.png}
-    \caption{Basin of attraction: Coexisting attractors}
+    \includegraphics[width =0.8\textwidth]{../plots/Project_Report/orbit Zoom.png} 
+    \caption{Detailed-Orbitdiagram}
+    \label{fig:Orbitdiagram2}
+  \end{centering}
+\end{figure}
+
+When $\alpha < 14$ there is only on stable attractor. At around 14 the stable attractor changes to an quasiperiodic attractor with an growing period.
+At around $\alpha = 15.5$ a periodic attractor with period 5 appears, which persists for higher $\alpha$-values.
+
+At around $\alpha = 20$ chaotic behaviour can appear. Multiple times an additional attractor arises which first
+ goes through period doubling and then turns into a chaotic attractor or disappears. 
+ Whenever there are multiple coexisting attractors the algorithm defined in Algorithm \ref{BoA} can be used to get the boundaries in the statespace to distinguish between the attractors.
+ In Figure \ref{fig:basin1} and \ref{fig:basin2} two basins of attraction for $\lambda = 7$ and $\mu = 2.5$
+
+Figure \ref{fig:basin1} shows a basin of attraction for $\alpha = 21.5$. The Basin on the left hand side contains three attractors, one chaotic(black) and two periodic(purple and turquoise).
+The turquoise one has fractal properties and the chaotic one appears as closed curve in the Statespace with its typical stretching and folding properties. 
+In Figure \ref{fig:basin2} the chaotic attractor dissapears and instead two stable riddled attractors emerge. Therefore there are four coexisting periodic attractors. 
+
+ \begin{landscape}
+\begin{figure}[H]
+  \begin{centering}
+    \includegraphics[width =1.5\textwidth]{../plots/Project_Report/Basins/215.png}
+    \caption{Basin of attraction: $\alpha = 21.5$}
+    \label{fig:basin1}
   \end{centering}
 \end{figure}
 
 
 \begin{figure}[H]
   \begin{centering}
-    \includegraphics[width =\textwidth]{../plots/Project_Report/Basin_piece_Chaos.png}
-    \caption{Basin of attraction: Piece Chaos}
+    \includegraphics[width =1.5\textwidth]{../plots/Project_Report/Basins/216.png}
+    \caption{Basin of attraction: $\alpha = 21.6$}
+    \label{fig:basin2}
   \end{centering}
 \end{figure}
+\end{landscape}
+The results have shown that even when using the Beverton-Holt map, the behavior can be very complicated and chaotic.
 
 \section{Diskursion}
+Mathematically, our results show the presence of several coexisting attractors. Coexisting in the sense of arising from the same combination of parameters, but differing from each other in the initial conditions.
 
-The given System is a fully deterministic Model. Therefore fractal properties do not directly influence 
-the stability of an Attractor. But under respect of random fluctuations, mixed up basins with close proximaty 
-of different Attractors may disturb the System. A metric on the basin based on the neighborhood could quantify this
-insecurity. 
 
-sad\autocite{paper}
-asdaf\autocite{biodiversity}
-asgs\autocite{hassell}
+In reality, however, a population cannot have two different initial conditions and therefore only one attractor can be achieved. 
+Since the model is deterministic, each of the possible attractors is stable but sensitive to population fluctuations. This means that our system is multi-stable.
+Thus, random changes or external influences such as immigration or emigration can change the system behaviour by switching between attractors. 
 
-\newpage
+
+It can be assumed, that the attractors have different sensitivities to fluctuations in phase space. 
+Since the basin plot assigns an attractor to each state, and the attractor is also only a set of states,
+a metric can be derived from this, which determines the sensitivity of an attractor based on the neighborhood relationships.
+
+
+Overall the Algorithms provided by the \texttt{DynamicalSystems} libary proofed to be very usefull and efficient. Without these it would not be possible to investigate the more complex behavior. The
+Julia programming language ist easy to understand and well documented and therefore not only fast in computation, but also fast to implement. The libary
+contains many more usefull functionalities like in the ChaosTools\footnote[1]{https://juliadynamics.github.io/ChaosTools.jl/dev/} module. 
+
 \thispagestyle{justline}
 \printbibliography[]
 
